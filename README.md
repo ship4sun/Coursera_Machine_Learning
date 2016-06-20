@@ -1,6 +1,6 @@
 # Coursera_Machine_Learning
 
-This is the assignment for machin learning class for Data Scientist Specialized Courses of COURSERA.
+This is the assignment for machin learning class for Data Science Specialization Courses of COURSERA.
 
 You can see the HTML on web page with below address.
 
