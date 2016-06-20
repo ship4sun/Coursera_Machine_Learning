@@ -2,5 +2,7 @@
 
 This is the assignment for machin learning class for Data Scientist Specialized Courses of COURSERA.
 
-You can see the HTML on web page with below address. 
+You can see the HTML on web page with below address.
+
+
 http://rpubs.com/ship4sun/predict_PJT
