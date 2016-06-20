@@ -44,7 +44,7 @@ NZV_names2 <- names(training) %in% NZV_names
 training_2 <- training[!NZV_names2]
 ```
 
-Some variables have too many NAs(90% and more). For Variables that have more than a 90% threshold of NA¡¯s I¡¯m going to leave them out:
+Some variables have too many NAs(90% and more). For Variables that have more than a 90% threshold of NAÂ¡Â¯s IÂ¡Â¯m going to leave them out:
 ```{r}
 training_NA <- sapply(training_2, function(x) sum(is.na(x)/nrow(training_2)))
 training_NA <- as.data.frame(training_NA)
@@ -92,6 +92,9 @@ confusionMatrix(pred_rf, test$classe)
 Comparing both medels, the accuracy of random forest model(99.4%) is better than one of rpart(48.7%). So I choose the random forest model. 
 
 # Prediction
+
+I predict 'classe' on the pml_test file. 
+The result is below. 
 
 ```{r}
 prediction <- predict(fit_rf, newdata=pml_test)
