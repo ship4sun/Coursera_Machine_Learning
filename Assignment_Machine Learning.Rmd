@@ -1,0 +1,99 @@
+---
+title: "Project to Predict the Manner of Excercise"
+author: "Ahn"
+date: "Saturday, June 18, 2016"
+output:
+  html_document:
+    theme: united
+---
+
+This is an assignment for the Machine Learning course of Coursera. 
+
+# Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement. 
+One of the information is about barbell lifts. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.The data is from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.
+
+The goal of your project is to predict the manner("classe" variable) in which they did the exercise. 
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. More information about data is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+# Modeling Process
+
+## 1. Getting data
+
+```{r}
+trainingURL <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testURL <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training <- read.csv(url(trainingURL),na.strings=c("NA","#DIV/0!",""))
+pml_test <- read.csv(url(testURL),na.strings=c("NA","#DIV/0!",""))
+```
+
+## 2. Exploring & Cleaning Data
+
+Before modeling the data, we should explore data. I did 'summary(training)', but I didn't show the table, because it is too long. 
+
+As an exploring data, some columns contained only NA values, so these were removed from the dataset. Using the nearZeroVar() function, I can find variables that were considered uninformative (zero or near zero variance predictors). Then, I make a new file without NZV variables. 
+```{r}
+library(caret)
+training_NZV <- nearZeroVar(training, saveMetrics=TRUE)
+training_names <- names(training)
+training_NZV <- cbind(training_NZV, training_names)
+training_NZV_2 <- subset(training_NZV, subset=(nzv==TRUE))
+NZV_names <- training_NZV_2$training_names
+NZV_names2 <- names(training) %in% NZV_names
+training_2 <- training[!NZV_names2]
+```
+
+Some variables have too many NAs(90% and more). For Variables that have more than a 90% threshold of NA¡¯s I¡¯m going to leave them out:
+```{r}
+training_NA <- sapply(training_2, function(x) sum(is.na(x)/nrow(training_2)))
+training_NA <- as.data.frame(training_NA)
+training_names_2 <- names(training_2)
+training_NA <- cbind(training_names_2, training_NA)
+training_NA_2 <- subset(training_NA, subset=(training_NA>0.9))
+NA_names <- training_NA_2$training_names_2
+NA_names2 <- names(training_2) %in% NA_names
+training_3 <- training_2[!NA_names2]
+```
+
+
+## 2. Modeling
+
+After exploring data, I delete the first 7 values which are not related with the sensor measurements for modeling. And I divide training file into 2 files, for training and testing. 
+```{r}
+training_4 <- training_3[,-(1:7)]
+inTrain <- createDataPartition(y=training_4$classe, p=0.7, list=FALSE)
+new_train <- training_4[inTrain,]
+test <- training_4[-inTrain,]
+```
+
+I try to make 2 models with rpart and random forest and will choose one based on accuracy and sample error. The object variable is multi-norminal, so I can't use 'GLM'method.
+
+```{r}
+library(rpart)
+library(randomForest)
+set.seed(1234)
+fit_rpart <- train(classe~., data=new_train, method="rpart")
+fit_rf <- randomForest(classe~., data=new_train)
+```
+
+## 3. Model Choice
+
+Then, I predict with test samples and check the accuracy per each model.  
+
+```{r}
+pred_rpart <- predict(fit_rpart, newdata=test)
+pred_rf <- predict(fit_rf, newdata=test)
+
+confusionMatrix(pred_rpart, test$classe)
+confusionMatrix(pred_rf, test$classe)
+```
+
+Comparing both medels, the accuracy of random forest model(99.4%) is better than one of rpart(48.7%). So I choose the random forest model. 
+
+# Prediction
+
+```{r}
+prediction <- predict(fit_rf, newdata=pml_test)
+print(prediction)
+```
